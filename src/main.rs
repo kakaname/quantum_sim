@@ -1,4 +1,5 @@
 mod qubit;
+mod nalgebra_test;
 
 
 

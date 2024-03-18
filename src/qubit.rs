@@ -20,10 +20,10 @@ impl Qubit {
         Self::new(UnitVector2::new_normalize(state))
         
     }
-    pub fn basis_0(state : UnitVector2<Complex<f32>>) -> Self{
+    pub fn basis_0() -> Self{
         Self::new(UnitVector2::new_normalize(Vector2::new(Complex::one(), Complex::zero())))
     }
-    pub fn basis_1(state : UnitVector2<Complex<f32>>) -> Self{
+    pub fn basis_1() -> Self{
         Self::new(UnitVector2::new_normalize(Vector2::new(Complex::zero(), Complex::one())))
     }
     pub fn mix(lhs : Self, rhs: Self, lhs_weight: f32, rhs_weight: f32) -> Self{
@@ -43,13 +43,8 @@ impl Add<Qubit> for Qubit {
     }
 }
 
-impl Mul<Qubit> for f32 {
-    type Output = Qubit;
+impl almost_equals(self , rhs : Self) -> bool {
 
-    fn mul(self, rhs : Qubit) -> Self::Output {
-        Self::new(self * rhs.state)
-
-    }
 }
 
 
@@ -58,9 +53,29 @@ mod test_qubit {
     use super::*;
 
     #[test]
-    fn test_qubit_init(){
-
+    fn test_qubit_initalizes(){
+        assert_eq!(Qubit::basis_0(), Qubit::new(UnitVector2::new_normalize(Vector2::new(Complex::one(), Complex::zero()))));
+        assert_eq!(Qubit::basis_1(), Qubit::new(UnitVector2::new_normalize(Vector2::new(Complex::one(), Complex::zero()))));
     } 
+
+    #[test]
+    fn test_qubit_mixes() { 
+        let mixed_state = Qubit::mix(Qubit::basis_0(), Qubit::basis_1(), 1, 3.0_f32.sqrt());
+        assert!(mixed_state.almost_equals(&Qubit::new(UnitVector2::new_normalize(Vector2::new(Complex::one() * 0.25_f32.sqrt(), Complex::one() * 0.75_f32.sqrt())))));
+    }
+
+    #[test]
+    fn test_qubit_add() { 
+        let basis0 = Qubit::basis_0();
+        let basis1 = Qubit::basis_1();
+
+        assert_eq!(basis0 + basis0, Qubit::new(UnitVector2::new_normalize((Vector2::new(Complex::zero(), Complex::zero())))));
+        assert_eq!(basis0 + basis1, Qubit::new(UnitVector2::new_normalize((Vector2::new(Complex::zero(), Complex::zero())))));
+        assert_eq!(basis1 + basis0, Qubit::new(UnitVector2::new_normalize((Vector2::new(Complex::zero(), Complex::zero())))));
+        assert_eq!(basis1 + basis1, Qubit::new(UnitVector2::new_normalize((Vector2::new(Complex::zero(), Complex::zero())))));
+
+
+    }
 
 
 }
