@@ -1,6 +1,6 @@
 mod qubit;
-mod nalgebra_test;
-
+mod quantum_gate;
+mod matrix;
 
 
 fn main() {
