@@ -1,6 +1,6 @@
-use std::ops::{Mul, Add};
+use std::ops::{Mul};
 
-use nalgebra::{UnitVector2, Complex, Vector2, Unit, Vector};
+use nalgebra::{UnitVector2, Complex, Vector2};
 use num_traits::identities::One;
 use num_traits::Zero;
 

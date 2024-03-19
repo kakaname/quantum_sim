@@ -1,5 +1,4 @@
 use std::{collections::HashMap, ops::Mul, fmt::Debug};
-
 use nalgebra::{Complex, ComplexField, DMatrix, Normed};
 use num_traits::{One, Zero};
 

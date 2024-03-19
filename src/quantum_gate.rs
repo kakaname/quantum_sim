@@ -1,7 +1,8 @@
-use crate::qubit::Qubit;
-use crate::matrix::SquareMatrix;
 
-use nalgebra::{Complex };
+use nalgebra::Complex;
+use num_traits::{One, Zero};
+
+use crate::matrix::SquareMatrix;
 
 
 pub struct QuantumGate{
@@ -10,13 +11,13 @@ pub struct QuantumGate{
 
 impl QuantumGate {
     pub fn new(matrix : SquareMatrix) -> Self {
-        QuantumGate{
-            matrix,
+        Self {
+            matrix
         }
 
     }
     pub fn identity_gate() -> Self{
-        Self::new{
+        Self::new (
             SquareMatrix::from_vector_normalize(
                 2, 
                 vec![
@@ -26,7 +27,7 @@ impl QuantumGate {
                     Complex::one(),
                 ]
             )
-        }
+        )
 
     }
     pub fn not_gate() -> Self {
