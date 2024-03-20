@@ -1,8 +1,9 @@
-use std::{ops::Mul};
+use std::{f32::consts::SQRT_2, ops::Mul};
 use nalgebra::{Complex, UnitVector2, Vector2};
 use num_traits::{One, Zero};
 
-use crate::{matrix::SquareMatrix, qubit::Qubit};
+use crate::{matrix::SquareMatrix, qubit::Qubit, quantum_register::QuantumRegister};
+
 
 
 pub struct QuantumGate{
@@ -44,6 +45,39 @@ impl QuantumGate {
             )
         )
     }
+    pub fn cnot_gate() -> Self{
+        Self::new(
+            SquareMatrix::from_vector_normalize(
+                4
+                , vec![
+                    Complex::one(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::one(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::one(),
+                    Complex::zero(),
+                    Complex::zero(),
+                    Complex::one(),
+                    Complex::zero(),
+                ])
+        )
+    }
+    pub fn hadamard_gate() -> Self{
+        Self::new(SquareMatrix::from_vector_normalize(
+            2, 
+            vec![
+                Complex::one() * 1. / SQRT_2, Complex::one() * 1. / SQRT_2,
+                Complex::one() * 1. / SQRT_2, Complex::one() * -1. / SQRT_2,
+            ]))
+    }
+
     // made for testing single bits and gates
     pub fn apply_bit(&self, qubit : Qubit) -> Qubit {
         let state = qubit.get_state();
@@ -55,7 +89,10 @@ impl QuantumGate {
                 )
             )
         )
+    }
 
+    pub fn apply_to_gate() -> QuantumRegister {
+        QuantumRegister::new(4) 
     }
 
 
@@ -85,6 +122,19 @@ mod test_quantum_gate {
 
     #[test]
     fn test_not_gate(){
+        let basis_0 = Qubit::basis_0();
+        let not_gate = QuantumGate::not_gate();
+        
+        assert_eq!(Qubit::basis_1(), not_gate.apply_bit(basis_0));
+
+        let basis_1 = Qubit::basis_1();
+        let not_gate = QuantumGate::not_gate();
+        
+        assert_eq!(Qubit::basis_0(), not_gate.apply_bit(basis_1));
+
+    }
+    #[test]
+    fn test_cnot_gate(){
 
     }
 }
