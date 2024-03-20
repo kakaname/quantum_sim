@@ -1,8 +1,10 @@
 use std::{collections::HashMap, ops::Mul, fmt::Debug};
-use nalgebra::{Complex, ComplexField, DMatrix, Normed};
+use nalgebra::{Complex, ComplexField, DMatrix, Normed, UnitVector2, Vector2};
 use num_traits::{One, Zero};
 
 type SparseMatrixRepresenation = HashMap<usize, HashMap<usize, Complex<f32>>>;
+
+use crate::{qubit::Qubit};
 
 #[derive(Debug, Clone)]
 pub struct SparseMatrix{
@@ -145,6 +147,10 @@ impl SquareMatrix {
     }
     pub fn from_vector_normalize(size : usize, vec : Vec<Complex<f32>>) -> Self {
         Self::new_unitary(SparseMatrix::from(DMatrix::from_vec(size,size,vec)))
+
+    }
+    pub fn get(self, i : usize, j : usize) -> Complex<f32>{
+        self.matrix.get(i, j)
 
     }
 
