@@ -47,13 +47,11 @@ impl QuantumGate {
     // made for testing single bits and gates
     pub fn apply_bit(&self, qubit : Qubit) -> Qubit {
         let state = qubit.get_state();
-        let matrix = self.matrix.clone();
-
         Qubit::new(
             UnitVector2::new_normalize(
                 Vector2::new(
-                    matrix.get(0,0) * state.x + matrix.get(0,1) * state.y,
-                    matrix.get(1,0) * state.x + matrix.get(1,1) * state.y
+                    self.matrix.get(0,0) * state.x + self.matrix.get(0,1) * state.y,
+                    self.matrix.get(1,0) * state.x + self.matrix.get(1,1) * state.y
                 )
             )
         )
@@ -73,10 +71,20 @@ mod test_quantum_gate {
 
     #[test]
     fn test_identity_gate(){
-        let basis_0 = Qubit::basis_1();
+        let basis_0 = Qubit::basis_0();
         let identity_gate = QuantumGate::identity_gate();
         
-        assert_eq!(basis_0, identity_gate.apply_bit(basis_0));
+        assert_eq!(Qubit::basis_0(), identity_gate.apply_bit(basis_0));
+
+        let basis_1 = Qubit::basis_1();
+        let identity_gate = QuantumGate::identity_gate();
+        
+        assert_eq!(Qubit::basis_1(), identity_gate.apply_bit(basis_1));
+
+    }
+
+    #[test]
+    fn test_not_gate(){
 
     }
 }

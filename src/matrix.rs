@@ -103,7 +103,7 @@ impl SparseMatrix {
     pub fn get(&self, i: usize, j: usize) -> Complex<f32>{
         match self.data.get(&i){
             Some(row) => match row.get(&j){
-                Some(coefficent) => *coefficent,
+                Some(coefficent) => coefficent.clone(),
                 None => Complex::zero(),
             },
             None => Complex::zero(),
@@ -149,7 +149,7 @@ impl SquareMatrix {
         Self::new_unitary(SparseMatrix::from(DMatrix::from_vec(size,size,vec)))
 
     }
-    pub fn get(self, i : usize, j : usize) -> Complex<f32>{
+    pub fn get(&self, i : usize, j : usize) -> Complex<f32>{
         self.matrix.get(i, j)
 
     }
