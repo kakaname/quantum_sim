@@ -84,6 +84,7 @@ impl SparseMatrix {
         }
     }
 
+
     pub fn size(&self, i:usize, j:usize) -> usize {
         self.size
     }
@@ -152,6 +153,16 @@ impl SquareMatrix {
     pub fn get(&self, i : usize, j : usize) -> Complex<f32>{
         self.matrix.get(i, j)
 
+    }
+    
+    pub fn inverse(&self) -> Self {
+        Self::new_unchecked(
+            SparseMatrix::from(
+                DMatrix::from(
+                    self.matrix.clone()
+                ).try_inverse().expect("all unitary square matrices should be invertible")
+            )
+        )
     }
 
 }

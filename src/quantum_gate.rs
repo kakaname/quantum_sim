@@ -2,7 +2,7 @@ use std::{f32::consts::SQRT_2, ops::Mul};
 use nalgebra::{Complex, UnitVector2, Vector2};
 use num_traits::{One, Zero};
 
-use crate::{matrix::SquareMatrix, qubit::Qubit, quantum_register::QuantumRegister};
+use crate::{matrix::SquareMatrix, quantum_register::{self, QuantumRegister}, qubit::Qubit};
 
 
 
@@ -69,6 +69,22 @@ impl QuantumGate {
                 ])
         )
     }
+    pub fn toffoli_gate() -> Self {
+        Self::new(SquareMatrix::from_vector_normalize(
+            8, 
+            vec![
+                Complex::one(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::one(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::zero(), Complex::one(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::zero(), Complex::zero(), Complex::one(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::one(), Complex::zero(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::one(), Complex::zero(), Complex::zero(),
+                Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::one(),
+                Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::zero(), Complex::one(), Complex::zero()
+            ])
+        )
+    }
+
     pub fn hadamard_gate() -> Self{
         Self::new(SquareMatrix::from_vector_normalize(
             2, 
@@ -91,9 +107,10 @@ impl QuantumGate {
         )
     }
 
-    pub fn apply_to_gate() -> QuantumRegister {
-        QuantumRegister::new(4) 
+    pub fn apply(&self, register : impl Into<QuantumRegister>) -> QuantumRegister {
+        QuantumRegister::new(2)
     }
+
 
 
 }
@@ -133,8 +150,5 @@ mod test_quantum_gate {
         assert_eq!(Qubit::basis_0(), not_gate.apply_bit(basis_1));
 
     }
-    #[test]
-    fn test_cnot_gate(){
 
-    }
 }
