@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Mul, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Mul};
 use nalgebra::{Complex, ComplexField, DMatrix, Normed};
 use num_traits::{One, Zero};
 
@@ -52,18 +52,22 @@ impl From<SparseMatrix> for DMatrix<Complex<f32>> {
 impl Mul<SparseMatrix> for SparseMatrix {
     type Output = SparseMatrix;
 
-    fn mul(self, rhs: SparseMatrix ) -> Self::Output {
-        let mut result: SparseMatrixRepresenation = HashMap::new();
+    fn mul(self, rhs:SparseMatrix) {
+        let mut result : SparseMatrixRepresenation = HashMap::new();
         for (i, row) in self.data.iter() {
-            for (j, lhs_coefficent) in row.iter() {
-                if rhs.data.contains_key(j){
-                    for (k, rhs_coefficent) in rhs.data.get(j).unwrap().iter() {
+            for (j, lhs_coeffcient) in row.iter() {
+                if rhs.data.contains_key(j) {
+                    for (k,rhs_coeffcient) in rhs.data.get(j).unwrap().iter() {
                         if result.contains_key(i){
-                            if result.get_mut(i).unwrap().contains_key(k) {
-                                *result.get_mut(i).unwrap().get_mut(k).unwrap() += lhs_coefficent * rhs_coefficent;
-                            }else { 
-                                result.get_mut(i).unwrap().insert(*k, lhs_coefficent * rhs_coefficent);
+                            if result.get_mut(i).unwrap().contains_key(k){
+                                *result.get_mut(i).unwrap().get_mut(k).unwrap() += lhs_coeffcient * rhs_coeffcient;
+                            }else{
+                                result.get_mut(i).unwrap().insert(*k, lhs_coeffcient * rhs_coeffcient);
                             }
+                        }else{
+                            let mut new_row = HashMap::new();
+                            new_row.insert(*k, lhs_coeffcient*rhs_coeffcient);
+                            result.insert(*i, new_row);
                         }
                     }
                 }
@@ -71,9 +75,7 @@ impl Mul<SparseMatrix> for SparseMatrix {
         }
         SparseMatrix::new(self.size, result)
     }
-
 }
-
 impl Mul<SparseMatrix> for Complex<f32> {
     type Output = SparseMatrix;
 
@@ -150,11 +152,50 @@ impl SparseMatrix {
 
     }
 
+    pub fn tensor_product(&self, rhs : Self ) -> Self {
+        let mut result: SparseMatrixRepresenation = HashMap::new();
+
+        for (i,row) in self.data.iter() {
+            for(j, coeffcient) in row.iter() {
+                let start_row = i * rhs.size;
+                let start_column = j * rhs.size;
+                for (k, rhs_row) in rhs.data.iter() {
+                    for (l, rhs_coeffcient) in rhs_row.iter() {
+                        if result.contains_key(&(start_row + k)){
+                            if result.get_mut(&(start_row + k)).unwrap().contains_key(&(&start_column + l)){
+                                *result.get_mut(&(&start_row + k)).unwrap().get_mut(&(start_column + l)).unwrap() += coeffcient * rhs_coeffcient;
+                            }else{
+                                result.get_mut(&(start_row + k)).unwrap().insert(start_column + l, coeffcient * rhs_coeffcient);
+                            }
+                        }else{
+                            let mut new_row = HashMap::new();
+                            new_row.insert(start_column + l, coeffcient*rhs_coeffcient);
+                            result.insert(start_row + k, new_row);
+
+                        }
+                    }
+                }
+
+            }
+        }
+        SparseMatrix::new(self.size * rhs.size, result)
+    
+
+    }
+
 }
 
 #[derive(Clone)]
 pub struct SquareMatrix{
     matrix : SparseMatrix,
+}
+
+impl Mul<SquareMatrix> for SquareMatrix {
+    type Output = SquareMatrix;
+    
+    fn mul(self, rhs : SquareMatrix) -> Self::Output {
+        SquareMatrix::new_unchecked(self.matrix * rhs.matrix)
+    }
 }
 
 impl SquareMatrix {
@@ -185,6 +226,10 @@ impl SquareMatrix {
 
     pub fn scale(&self, scalar: Complex<f32>) -> Self {
         Self::new_unitary(self.matrix.clone().mul(scalar))
+    }
+    
+    pub fn tensor_product(&self, rhs: &Self) -> Self {
+        Self::new_unchecked(self.matrix.tensor_product(&rhs.matrix))
     }
 
     pub fn permutation(permutation: Vec<usize>) -> Self { 

@@ -64,6 +64,14 @@ impl QuantumGate {
         Self::permutation(&permutation)
     }
 
+    pub fn tensor_product(&self, rhs : Self) -> Self {
+        Self::new(self.matrix.tensor_product(&rhs.matrix))
+    }
+
+    pub fn compose(&self, rhs: &Self) -> Self {
+        Self::new(self.matrix.clone() * rhs.matrix.clone())
+    }
+
 
     pub fn identity_gate() -> Self{
         Self::new (
