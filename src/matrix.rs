@@ -74,6 +74,34 @@ impl Mul<SparseMatrix> for SparseMatrix {
 
 }
 
+impl Mul<SparseMatrix> for Complex<f32> {
+    type Output = SparseMatrix;
+
+    fn mul(self, rhs: SparseMatrix) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl Mul<Complex<f32>> for SparseMatrix {
+    type Output = SparseMatrix;
+
+    fn mul(self, rhs:Complex<f32>) -> Self::Output {
+        let mut result: SparseMatrixRepresenation = HashMap::new();
+        for (i, row) in self.data.iter() {
+            for (j, coeffcient) in row.iter() {
+                if result.contains_key(i){
+                    result.get_mut(i).unwrap().insert(*j, *coeffcient * rhs);
+                }else{
+                    let mut new_row = HashMap::new();
+                    new_row.insert(*j, *coeffcient * rhs);
+                    result.insert(*i, new_row);
+                }
+            }
+        }
+        SparseMatrix::new(self.size, result)
+    }
+}
+
 impl SparseMatrix {
     pub fn new(size : usize, data : SparseMatrixRepresenation) -> Self{
         Self {
@@ -145,7 +173,33 @@ impl SquareMatrix {
     }
     pub fn from_vector_normalize(size : usize, vec : Vec<Complex<f32>>) -> Self {
         Self::new_unitary(SparseMatrix::from(DMatrix::from_vec(size,size,vec)))
-
     }
+
+    pub fn get_coeffcient(&self, row: usize, col: usize) -> Complex<f32> {
+        self.matrix.get(row, col)
+    }
+
+    pub fn identity(size: usize) -> Self {
+        Self::new_unchecked(SparseMatrix::identity(size))
+    }
+
+    pub fn scale(&self, scalar: Complex<f32>) -> Self {
+        Self::new_unitary(self.matrix.clone().mul(scalar))
+    }
+
+    pub fn permutation(permutation: Vec<usize>) -> Self { 
+        assert!(permutation.len() > 0);
+        assert!(permutation.iter().zip(permutation.iter().skip(1)).all(|(a,b)| a != b));
+
+        let size = permutation.len();
+        let mut data = HashMap::new();
+        for (i,j) in permutation.iter().enumerate() {
+            let row: HashMap<usize, Complex<f32>> = [(*j, Complex::one())].iter().cloned().collect();
+            data.insert(i,row);
+        }
+
+        Self::new_unchecked(SparseMatrix::new(size, data))
+    }
+
 
 }
