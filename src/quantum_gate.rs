@@ -1,7 +1,9 @@
+use std::f32::consts::{SQRT_2, TAU};
 
-use nalgebra::Complex;
+use nalgebra::{Complex, Unit, Normed, ComplexField};
 use num_traits::{One, Zero};
 use num::integer::gcd;
+
 
 use crate::{matrix::SquareMatrix, qubit};
 
@@ -72,6 +74,65 @@ impl QuantumGate {
         Self::new(self.matrix.clone() * rhs.matrix.clone())
     }
 
+    pub fn cnot()-> Self {
+        Self::new(SquareMatrix::from_vector_normalize(4, 
+            vec![
+                Complex::one(), // 00
+                Complex::zero(),
+                Complex::zero(),
+                Complex::zero(),
+                Complex::zero(), // 10
+                Complex::one(), // 11
+                Complex::zero(),
+                Complex::zero(),
+                Complex::zero(), // 20
+                Complex::zero(),
+                Complex::zero(),
+                Complex::one(), // 23
+                Complex::zero(), // 30
+                Complex::zero(),
+                Complex::one(), // 32
+                Complex::zero(),
+            ]))
+    }
+
+    pub fn controlled_phase_shift(phase : f32) -> Self {
+        Self::new(SquareMatrix::from_vector_normalize(4, vec![
+            Complex::one(), // 00
+            Complex::zero(),
+            Complex::zero(),
+            Complex::zero(),
+            Complex::zero(), // 10
+            Complex::one(), // 11
+            Complex::zero(),
+            Complex::zero(),
+            Complex::zero(), // 20
+            Complex::zero(),
+            Complex::one(), // 22
+            Complex::zero(),
+            Complex::zero(), // 30
+            Complex::zero(),
+            Complex::zero(),
+            Complex::exp(phase * Complex::i()), // 33
+        ]))
+    }
+
+    pub fn hadamard() -> Self {
+        Self::new(
+            SquareMatrix::from_vector_normalize(2, vec![
+                Complex::one() * 1./SQRT_2, Complex::one() * 1./SQRT_2,
+                Complex::one() * 1./SQRT_2, Complex::one() * -1./SQRT_2,
+            ])
+        )
+    }
+
+    pub fn reverse(&self) -> Self {
+        Self::new(self.matrix.clone().invert())
+    }
+
+    pub fn n_qubits(&self) -> usize {
+        self.matrix.size().ilog2() as usize
+    }
 
     pub fn identity_gate() -> Self{
         Self::new (

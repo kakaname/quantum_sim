@@ -52,7 +52,7 @@ impl From<SparseMatrix> for DMatrix<Complex<f32>> {
 impl Mul<SparseMatrix> for SparseMatrix {
     type Output = SparseMatrix;
 
-    fn mul(self, rhs:SparseMatrix) {
+    fn mul(self, rhs:SparseMatrix) -> Self::Output {
         let mut result : SparseMatrixRepresenation = HashMap::new();
         for (i, row) in self.data.iter() {
             for (j, lhs_coeffcient) in row.iter() {
@@ -76,6 +76,7 @@ impl Mul<SparseMatrix> for SparseMatrix {
         SparseMatrix::new(self.size, result)
     }
 }
+
 impl Mul<SparseMatrix> for Complex<f32> {
     type Output = SparseMatrix;
 
@@ -112,7 +113,7 @@ impl SparseMatrix {
         }
     }
 
-    pub fn size(&self, i:usize, j:usize) -> usize {
+    pub fn size(&self) -> usize {
         self.size
     }
 
@@ -139,7 +140,6 @@ impl SparseMatrix {
 
     }
 
-
     pub fn almost_equals(&self, other : &Self) -> bool {
         for (i, row) in self.data.iter() {
             for (j, coefficient) in row.iter() {
@@ -152,7 +152,7 @@ impl SparseMatrix {
 
     }
 
-    pub fn tensor_product(&self, rhs : Self ) -> Self {
+    pub fn tensor_product(&self, rhs : &Self ) -> Self {
         let mut result: SparseMatrixRepresenation = HashMap::new();
 
         for (i,row) in self.data.iter() {
@@ -232,6 +232,17 @@ impl SquareMatrix {
         Self::new_unchecked(self.matrix.tensor_product(&rhs.matrix))
     }
 
+    pub fn size(&self) -> usize {
+        self.matrix.size()
+    }
+
+    pub fn invert(&self) -> Self {
+        Self::new_unchecked(SparseMatrix::from(
+            DMatrix::from(
+                self.matrix.clone()
+            ).try_inverse().expect("All unitary square matrices should be invertible")
+        ))
+    }
     pub fn permutation(permutation: Vec<usize>) -> Self { 
         assert!(permutation.len() > 0);
         assert!(permutation.iter().zip(permutation.iter().skip(1)).all(|(a,b)| a != b));
