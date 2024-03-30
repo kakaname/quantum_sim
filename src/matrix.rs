@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Mul};
-use nalgebra::{Complex, ComplexField, DMatrix, Normed};
+use nalgebra::{Complex, ComplexField, DMatrix, DVector, Normed, Unit};
 use num_traits::{One, Zero};
 
 type SparseMatrixRepresenation = HashMap<usize, HashMap<usize, Complex<f32>>>;
@@ -85,6 +85,20 @@ impl Mul<SparseMatrix> for Complex<f32> {
     }
 }
 
+impl Mul<DVector<Complex<f32>>> for SparseMatrix {
+    type Output = DVector<Complex<f32>>;
+
+    fn mul(self, rhs: DVector<Complex<f32>>) -> Self::Output {
+        let mut result = DVector::zeros(self.size);
+        for (i, row) in self.data.iter() {
+            for (j, coeffcient) in row.iter() {
+                result[*i] += *coeffcient * rhs[*j];
+            }
+        }
+        result
+
+    }
+}
 impl Mul<Complex<f32>> for SparseMatrix {
     type Output = SparseMatrix;
 
@@ -198,6 +212,14 @@ impl Mul<SquareMatrix> for SquareMatrix {
     }
 }
 
+impl Mul<Unit<DVector<Complex<f32>>>> for SquareMatrix {
+    type Output = DVector<Complex<f32>>;
+
+    fn mul(self, rhs: Unit<DVector<Complex<f32>>>) -> Self::Output {
+        self.matrix * rhs.into_inner()
+    }
+}
+
 impl SquareMatrix {
     pub fn new_unchecked(matrix : SparseMatrix) -> Self {
         Self {matrix}
@@ -212,7 +234,7 @@ impl SquareMatrix {
         Self {matrix: SparseMatrix::from(normalized_matrix)}
 
     }
-    pub fn from_vector_normalize(size : usize, vec : Vec<Complex<f32>>) -> Self {
+    pub fn from_vec_normalize(size : usize, vec : Vec<Complex<f32>>) -> Self {
         Self::new_unitary(SparseMatrix::from(DMatrix::from_vec(size,size,vec)))
     }
 
@@ -227,7 +249,10 @@ impl SquareMatrix {
     pub fn scale(&self, scalar: Complex<f32>) -> Self {
         Self::new_unitary(self.matrix.clone().mul(scalar))
     }
-    
+
+    pub fn get(&self, i : usize, j : usize) -> Complex<f32> {
+        self.matrix.get(i, j)
+    } 
     pub fn tensor_product(&self, rhs: &Self) -> Self {
         Self::new_unchecked(self.matrix.tensor_product(&rhs.matrix))
     }

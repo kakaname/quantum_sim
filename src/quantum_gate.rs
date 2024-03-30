@@ -5,9 +5,10 @@ use num_traits::{One, Zero};
 use num::integer::gcd;
 
 
-use crate::{matrix::SquareMatrix, qubit};
+use crate::{matrix::SquareMatrix, qubit::Qubit, quantum_register::QuantumRegister};
 
 
+#[derive(Clone)]
 pub struct QuantumGate{
     matrix: SquareMatrix
 }
@@ -75,7 +76,7 @@ impl QuantumGate {
     }
 
     pub fn cnot()-> Self {
-        Self::new(SquareMatrix::from_vector_normalize(4, 
+        Self::new(SquareMatrix::from_vec_normalize(4, 
             vec![
                 Complex::one(), // 00
                 Complex::zero(),
@@ -97,7 +98,7 @@ impl QuantumGate {
     }
 
     pub fn controlled_phase_shift(phase : f32) -> Self {
-        Self::new(SquareMatrix::from_vector_normalize(4, vec![
+        Self::new(SquareMatrix::from_vec_normalize(4, vec![
             Complex::one(), // 00
             Complex::zero(),
             Complex::zero(),
@@ -119,7 +120,7 @@ impl QuantumGate {
 
     pub fn hadamard() -> Self {
         Self::new(
-            SquareMatrix::from_vector_normalize(2, vec![
+            SquareMatrix::from_vec_normalize(2, vec![
                 Complex::one() * 1./SQRT_2, Complex::one() * 1./SQRT_2,
                 Complex::one() * 1./SQRT_2, Complex::one() * -1./SQRT_2,
             ])
@@ -134,9 +135,9 @@ impl QuantumGate {
         self.matrix.size().ilog2() as usize
     }
 
-    pub fn identity_gate() -> Self{
+    pub fn identity() -> Self{
         Self::new (
-            SquareMatrix::from_vector_normalize(
+            SquareMatrix::from_vec_normalize(
                 2, 
                 vec![
                     Complex::one(),
@@ -148,10 +149,10 @@ impl QuantumGate {
         )
 
     }
-    pub fn not_gate() -> Self {
+    pub fn not() -> Self {
         // Pauli X Gate
         Self::new (
-            SquareMatrix::from_vector_normalize(
+            SquareMatrix::from_vec_normalize(
                 2,
                 vec![
                     Complex::zero(),
@@ -163,16 +164,60 @@ impl QuantumGate {
         )
     }
 
+    pub fn apply(&self, register: impl Into<QuantumRegister>) -> QuantumRegister {
+        QuantumRegister::new_normalize(self.matrix.clone() * register.into().get_vector())
+    }
+
 
 }
 
 
 #[cfg(test)]
 mod test_quantum_gate {
+
+    use std::iter;
+    use nalgebra::Vector2;
     use super::*;
 
     #[test]
-    fn test_quantum_gate(){
+    fn test_not_gate(){
+
+        assert!(
+            QuantumGate::not().apply(Qubit::basis_0()).almost_equals(Qubit::basis_1())
+        );
+        assert!(
+            QuantumGate::not().apply(Qubit::basis_1()).almost_equals(Qubit::basis_0())
+        );
+        assert!(
+            QuantumGate::not().apply(Qubit::mix(Qubit::basis_0(), Qubit::basis_1(), 1., 3.)).almost_equals(
+                Qubit::mix(Qubit::basis_1(), Qubit::basis_0(), 1., 3.)
+            )
+        );
+    }
+
+        #[test]
+    fn test_cnot_gate() {
+        let cnot = QuantumGate::cnot();
+
+        let zero: Complex<f32> = Complex::zero();
+        let one = Complex::one();
+
+        assert_eq!(cnot.matrix.get(0,0), one.clone());
+        assert_eq!(cnot.matrix.get(1,1), one.clone());
+        assert_eq!(cnot.matrix.get(2,3), one.clone());
+        assert_eq!(cnot.matrix.get(3,2), one.clone());
+
+        let zero_zero = QuantumRegister::basis(2, 0);
+        let zero_one = QuantumRegister::basis(2, 1);
+        let one_zero = QuantumRegister::basis(2, 2);
+        let one_one = QuantumRegister::basis(2, 3);
+
+        assert_eq!(cnot.clone().apply(zero_zero.clone()), zero_zero.clone());
+        assert_eq!(cnot.clone().apply(zero_one.clone()), zero_one.clone());
+        assert_eq!(cnot.clone().apply(one_zero.clone()), one_one.clone());
+        assert_eq!(cnot.clone().apply(one_one.clone()), one_zero.clone());
 
     }
+
+
 }
