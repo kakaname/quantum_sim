@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Formatter};
 
-use nalgebra::{Complex, DVector, Unit, Normed, ComplexField};
+use nalgebra::{Complex, DVector, Unit};
 use num_traits::One;
 
 

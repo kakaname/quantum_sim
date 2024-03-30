@@ -1,5 +1,7 @@
-use std::{collections::HashMap, fmt::Debug, hash::Hash, ops::Mul};
+use std::{collections::HashMap, ops::Mul};
+use std::fmt::{Debug, Formatter, Display};
 use nalgebra::{Complex, ComplexField, DMatrix, DVector, Normed, Unit};
+use num::bigint::ParseBigIntError;
 use num_traits::{One, Zero};
 
 type SparseMatrixRepresenation = HashMap<usize, HashMap<usize, Complex<f32>>>;
@@ -204,6 +206,24 @@ pub struct SquareMatrix{
     matrix : SparseMatrix,
 }
 
+impl Debug for SquareMatrix {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", DMatrix::from(self.matrix.clone()))
+    }
+}
+
+impl Display for SquareMatrix {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", DMatrix::from(self.matrix.clone()))
+    }
+}
+
+impl PartialEq for SquareMatrix {
+    fn eq(&self, other: &Self) -> bool {
+        self.almost_equals(other) 
+    }
+}
+
 impl Mul<SquareMatrix> for SquareMatrix {
     type Output = SquareMatrix;
     
@@ -280,6 +300,12 @@ impl SquareMatrix {
         }
 
         Self::new_unchecked(SparseMatrix::new(size, data))
+    }
+    pub fn almost_equals(&self, rhs : &Self) -> bool {
+        self.matrix.almost_equals(&rhs.matrix)
+    }
+    pub fn one(size : usize) -> Self {
+        Self::identity(size)
     }
 
 

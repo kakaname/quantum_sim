@@ -1,16 +1,28 @@
-use std::f32::consts::{SQRT_2, TAU};
+use std::{f32::consts::SQRT_2};
+use std::fmt::{Formatter, Debug, Display};
 
-use nalgebra::{Complex, Unit, Normed, ComplexField};
+use nalgebra::{Complex};
 use num_traits::{One, Zero};
 use num::integer::gcd;
 
 
-use crate::{matrix::SquareMatrix, qubit::Qubit, quantum_register::QuantumRegister};
+use crate::{matrix::SquareMatrix, quantum_register::QuantumRegister, qubit::Qubit};
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct QuantumGate{
     matrix: SquareMatrix
+}
+
+impl Debug for QuantumGate {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result{
+        write!(f, "{:?}", self.matrix)
+    }
+}
+impl Display for QuantumGate {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.matrix)
+    }
 }
 
 impl QuantumGate {
@@ -135,19 +147,9 @@ impl QuantumGate {
         self.matrix.size().ilog2() as usize
     }
 
-    pub fn identity() -> Self{
-        Self::new (
-            SquareMatrix::from_vec_normalize(
-                2, 
-                vec![
-                    Complex::one(),
-                    Complex::zero(),
-                    Complex::zero(),
-                    Complex::one(),
-                ]
-            )
-        )
-
+    pub fn identity(n_qubits: usize) -> Self{
+        assert!(n_qubits > 0);
+        Self::new(SquareMatrix::one(2usize.pow(n_qubits as u32)))
     }
     pub fn not() -> Self {
         // Pauli X Gate
@@ -166,6 +168,10 @@ impl QuantumGate {
 
     pub fn apply(&self, register: impl Into<QuantumRegister>) -> QuantumRegister {
         QuantumRegister::new_normalize(self.matrix.clone() * register.into().get_vector())
+    }
+
+    pub fn almost_equals(&self, rhs: &Self) -> bool {
+        self.matrix.almost_equals(&rhs.matrix)
     }
 
 
@@ -195,7 +201,7 @@ mod test_quantum_gate {
         );
     }
 
-        #[test]
+    #[test]
     fn test_cnot_gate() {
         let cnot = QuantumGate::cnot();
 
