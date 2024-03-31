@@ -1,10 +1,11 @@
-use std::fmt::{Debug, Formatter};
+use std::{fmt::{Debug, Display ,Formatter}};
 
 use nalgebra::{Complex, DVector, Unit};
 use num_traits::One;
 
+use rand::Rng;
 
-use crate::{qubit::Qubit};
+use crate::qubit::{Measurement, Qubit};
 
 
 
@@ -16,6 +17,13 @@ pub struct QuantumRegister {
 impl Debug for QuantumRegister {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.register)
+    }
+}
+
+impl Display for QuantumRegister {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = self.register.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join("\n");
+        write!(f, "{}", s)
     }
 }
 
@@ -73,6 +81,33 @@ impl QuantumRegister {
         self.register.len().ilog2() as usize
     }
 
+    pub fn get_probability(&self, i:usize) -> f32 {
+        self.get_coeffcient(i).norm().powi(2)
+    }
+
+    pub fn get_coeffcient(&self, i:usize) -> Complex<f32> {
+        self.register[i]
+    }
+
+    pub fn measure(&self) -> (Measurement, Self) {
+        let mut rng = rand::thread_rng();
+        let random_number = rng.gen_range(0.0_f32..1.0);
+        let mut prob_so_far = 0.;
+
+        for i in 0..self.len() {
+            prob_so_far += self.get_probability(i);
+            if random_number <= prob_so_far {
+
+                let new_register = Self::basis(self.n_qubits(), i);
+                return (i as u8, new_register);
+
+            }
+        }
+
+        panic!("Measurement went wrong somehow");
+
+    }
+
     pub fn len(&self) -> usize {
         self.register.len()
     }
@@ -82,6 +117,10 @@ impl QuantumRegister {
         assert_eq!(self.n_qubits(), inner_rhs.clone().n_qubits());
         (self.register.clone().into_inner() - inner_rhs.register.clone().into_inner()).norm() < 0.0001
 
+    }
+
+    pub fn tensor_product(&self, other : &Self) -> Self {
+        Self::new_normalize(self.register.kronecker(&other.register))
     }
 
 
