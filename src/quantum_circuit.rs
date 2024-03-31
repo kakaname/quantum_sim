@@ -64,6 +64,67 @@ impl QuantumCircuit {
 
     }
 
+    pub fn singleton(gate : QuantumGate) -> Self {
+        let mut circuit = Self::new(gate.n_qubits());
+        circuit.add_gate(gate.clone(), (0..gate.n_qubits()).collect());
+        circuit
+    }
+
+    pub fn run(&self, register: impl Into<QuantumRegister>) -> QuantumRegister {
+        let inner_register = register.into();
+        assert_eq!(self.n_qubits, inner_register.n_qubits());
+        let mut intermediate_register = inner_register.clone();
+        for gate in &self.gates {
+            intermediate_register = gate.apply(intermediate_register);
+        }
+        intermediate_register
+
+    }
+
+    pub fn n_qubits(&self) -> usize {
+        self.n_qubits
+    }
+
+    pub fn n_gates(&self) -> usize {
+        self.gates.len()
+    }
+
+    pub fn get_gates(&self) -> Vec<QuantumGate> {
+        self.gates.clone()
+    }
+
+    pub fn fourier_transform(n_qubits: usize) -> Self {
+        let mut circuit = Self::new(n_qubits);
+        circuit.add_gate(QuantumGate::permutation(&(0..n_qubits).rev().collect()), (0..n_qubits).collect());
+        for i in 0..n_qubits {
+            let partial = Self::partial_fourier_transform(n_qubits, i);
+            circuit.extend(&partial);
+        }
+        circuit
+    }
+    
+    pub fn partial_fourier_transform(n_qubits: usize, start_id: usize) -> Self {
+        let mut circuit = Self::new(n_qubits);
+        circuit.add_gate(QuantumGate::hadamard(), vec![start_id]);
+
+        let mut k = 1;
+        for i in (start_id + 1)..n_qubits{
+            let k_pow = 2usize.pow((k+1) as u32);
+            let phase_shift_gate = QuantumGate::controlled_phase_shift(TAU / (k_pow as f32));
+            circuit.add_gate(phase_shift_gate, vec![start_id]);
+            k += 1;
+        }
+        circuit
+    }
+
+    pub fn extend(&mut self, circuit: &Self) {
+        assert_eq!(self.n_qubits, circuit.n_qubits);
+        self.gates.extend(circuit.gates.iter().map(|gate| gate.clone()));
+
+    }
+
+
+
 }
 
 
