@@ -30,7 +30,7 @@ impl QuantumCircuit {
 
     pub fn add_gate(&mut self, gate: QuantumGate, input_qubits: Vec<usize> ){
         assert!(gate.n_qubits() > 0);
-        assert!(gate.n_qubits() > input_qubits.len());
+        assert!(gate.n_qubits() == input_qubits.len());
 
         let mut sorted_qubits = input_qubits.clone();
         sorted_qubits.sort();
@@ -111,7 +111,7 @@ impl QuantumCircuit {
         for i in (start_id + 1)..n_qubits{
             let k_pow = 2usize.pow((k+1) as u32);
             let phase_shift_gate = QuantumGate::controlled_phase_shift(TAU / (k_pow as f32));
-            circuit.add_gate(phase_shift_gate, vec![start_id]);
+            circuit.add_gate(phase_shift_gate, vec![i, start_id]);
             k += 1;
         }
         circuit
@@ -123,8 +123,51 @@ impl QuantumCircuit {
 
     }
 
+    pub fn inverse_fourier_transform(n_qubits: usize) -> Self{
+        let mut circuit = Self::new(n_qubits);
+        for i in 0..n_qubits {
+            let partial = Self::partial_inverse_fourier_transform(n_qubits, i);
+            circuit.extend(&partial);
+        }
+        circuit.add_gate(QuantumGate::reverse_permutation(&(0..n_qubits).rev().collect()), (0..n_qubits).collect());
+        circuit
+    }
 
+    pub fn partial_inverse_fourier_transform(n_qubits: usize, start_id: usize) -> Self {
+        let mut circuit = Self::new(n_qubits);
+
+        let mut k = start_id;
+        for i in (n_qubits - start_id)..n_qubits {
+            let k_pow = 2usize.pow((k+1) as u32);
+            let phase_shift_gate = QuantumGate::controlled_phase_shift(-TAU / (k_pow as f32));
+            circuit.add_gate(phase_shift_gate, vec![(n_qubits - 1) - start_id, (n_qubits - 1) - (i - (n_qubits - start_id))]);
+            k -= 1;
+        }
+        circuit.add_gate(QuantumGate::hadamard(), vec![n_qubits - start_id - 1]);
+
+        circuit
+
+    }
 
 }
 
 
+#[cfg(test)]
+mod test_quantum_circuit {
+    use std::process::Output;
+
+    use super::*;
+
+    #[test]
+    fn test_fourier_and_inverse_fourier() {
+        let ft = QuantumCircuit::fourier_transform(4);
+        let ift = QuantumCircuit::inverse_fourier_transform(4);
+
+        for i in 0..15 {
+            let input = QuantumRegister::from_int(4, i);
+            let output = ft.run(input.clone());
+            let output2 = ift.run(output);
+            assert!(output2.almost_equals(input));
+        }
+    }
+}
