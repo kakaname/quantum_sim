@@ -133,8 +133,10 @@ impl QuantumGate {
     pub fn hadamard() -> Self {
         Self::new(
             SquareMatrix::from_vec_normalize(2, vec![
-                Complex::one() * 1./SQRT_2, Complex::one() * 1./SQRT_2,
-                Complex::one() * 1./SQRT_2, Complex::one() * -1./SQRT_2,
+                Complex::one() * 1./SQRT_2, 
+                Complex::one() * 1./SQRT_2,
+                Complex::one() * 1./SQRT_2, 
+                Complex::one() * -1./SQRT_2,
             ])
         )
     }

@@ -1,6 +1,6 @@
 use std::{fmt::{Debug, Display ,Formatter}};
 
-use nalgebra::{Complex, DVector, Unit};
+use nalgebra::{Complex, DVector, Unit, dvector};
 use num_traits::One;
 
 use rand::Rng;

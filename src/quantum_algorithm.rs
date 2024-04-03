@@ -1,3 +1,4 @@
+use crate::quantum_gate::QuantumGate;
 use crate::{quantum_circuit::QuantumCircuit};
 use crate::quantum_register::QuantumRegister;
 
@@ -5,31 +6,34 @@ use crate::quantum_register::QuantumRegister;
 #[derive(Debug)]
 pub struct ShorsAlgo {
     capital_n : u32,
-    circuit : QuantumCircuit
+    x : u32
 }
 
 impl ShorsAlgo {
-    pub fn new(capital_n : u32) -> Self {
-        Self { capital_n, circuit: QuantumCircuit::ShorsAlgo(capital_n as usize) }
+    pub fn new(capital_n : u32, x : u32) -> Self {
+        Self { capital_n, x }
 
     }
     
-    pub fn get_circuit(&self) -> &QuantumCircuit {
-        &self.circuit
-    }
 
     pub fn run(&mut self) -> u8 {
-        let n_qubits = self.circuit.n_qubits() / 2;
-        let control_register = QuantumRegister::basis(n_qubits, 0);
-        let target_register = QuantumRegister::basis(n_qubits, 1);
+        let n_power_2 = self.capital_n * self.capital_n;
+        let two_n_power_2  = 2 * n_power_2;
 
-        let register = control_register.tensor_product(&target_register);
+        let t = two_n_power_2.ilog2() as usize;
 
-        let output = self.circuit.run(register);
+        let mut argument_register = QuantumRegister::basis(t, 0);
 
-        let (measurement, _) = output.measure();
+        let mut function_register = QuantumRegister::basis(self.capital_n.ilog2() as usize, 0);
+        
+        // apply Hadamard gate
+        let hadamard = QuantumGate::hadamard();
+        argument_register = hadamard.apply(argument_register);
+        function_register = hadamard.apply(function_register);
 
-        measurement
+
+
+        8
     }
 
 }
