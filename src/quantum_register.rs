@@ -22,6 +22,13 @@ impl QuantumRegister {
     self.register[i].apply(gate);
   }
 
+  pub fn apply_two(&mut self, i : usize, j : usize, gate_function : fn(Qubit, Qubit) -> (Qubit, Qubit)) {
+    let (qubit1, qubit2) = gate_function(self.register[i], self.register[j]);
+    self.register[i] = qubit1;
+    self.register[j] = qubit2;
+
+  }
+
 
 }
 

@@ -1,6 +1,7 @@
   
 use nalgebra::{ComplexField, DMatrix};
 
+use std::f32::consts::SQRT_2;
 use std::fmt::{Display}; 
 
 use nalgebra::{UnitVector2, Complex, Vector2};
@@ -19,10 +20,17 @@ impl Display for Qubit {
   }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+impl PartialEq for Qubit {
+  fn eq(&self, other: &Self) -> bool {
+      self.almost_equals(other)
+  }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Qubit {
   state : UnitVector2<Complex<f32>>,
 }
+
 
 impl Qubit {
 
@@ -41,6 +49,13 @@ impl Qubit {
 
   pub fn basis_1() -> Self{
     Self::new(UnitVector2::new_normalize(Vector2::new(Complex::zero(), Complex::one())))
+  }
+
+  pub fn half_half() -> Self{
+    Self::new(UnitVector2::new_normalize(Vector2::new(
+      Complex::one(), 
+      Complex::one() 
+    )))
   }
 
   pub fn almost_equals(&self , rhs : &Self) -> bool {
