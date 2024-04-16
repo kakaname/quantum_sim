@@ -59,6 +59,8 @@ impl QuantumGate {
 
   }
 
+  // coeffcient values and corresponding gates:
+  // 
   pub fn phase(qubit1: &mut Qubit, coeffcient: f32){
     // gate :
     // 1  0 
@@ -70,6 +72,24 @@ impl QuantumGate {
       state1.y * turn_coeffcient 
     ));
 
+    qubit1.change_state(vector);
+  }
+
+  pub fn pauli_z(qubit1: &mut Qubit) {
+    let state1 = qubit1.get_state();
+    let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
+      state1.x, 
+      -state1.y
+    ));
+    qubit1.change_state(vector);
+  }
+
+  pub fn pauli_y(qubit1: &mut Qubit) {
+    let state1 = qubit1.get_state();
+    let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
+      state1.y * -Complex::i(), 
+      state1.x * Complex::i()
+    ));
     qubit1.change_state(vector);
   }
 
@@ -125,19 +145,52 @@ mod quantum_gate_test {
   }
 
   #[test]
+  fn test_not() {
+    // |1> -> |0>
+    let mut qubit1 = Qubit::basis_0();
+    QuantumGate::not(&mut qubit1);
+    assert_eq!(qubit1, Qubit::basis_1());
+
+    // |0> -> |1>
+    qubit1 = Qubit::basis_1();
+    QuantumGate::not(&mut qubit1);
+    assert_eq!(qubit1, Qubit::basis_0());
+  }
+
+  #[test]
+  fn test_pauli_z() {
+    let mut qubit1 = Qubit::basis_0();
+    QuantumGate::pauli_z(&mut qubit1);
+    assert_eq!(qubit1.get_state().x, Complex::one());
+    assert_eq!(qubit1.get_state().y, Complex::zero());
+
+    let mut qubit1 = Qubit::basis_1();
+    QuantumGate::pauli_z(&mut qubit1);
+    assert_eq!(qubit1.get_state().x, Complex::zero());
+    assert_eq!(qubit1.get_state().y, -Complex::one());
+  }
+
+  #[test]
+  fn test_pauli_y() {
+    let mut qubit1 = Qubit::basis_0();
+    QuantumGate::pauli_y(&mut qubit1);
+    assert_eq!(qubit1.get_state().x, Complex::zero());
+    assert_eq!(qubit1.get_state().y, Complex::i());
+
+    let mut qubit1 = Qubit::basis_1();
+    QuantumGate::pauli_y(&mut qubit1);
+    assert_eq!(qubit1.get_state().x, -Complex::i());
+    assert_eq!(qubit1.get_state().y, Complex::zero());
+
+  }
+
+  #[test]
   fn quantum_gate_phase_test() {
     // state:
     // sqrt(0.5)  
     // sqrt(0.5)
-    let vec0_phase: UnitVector2<Complex<f32>> = 
-    UnitVector2::new_normalize(
-      Vector2::new(
-        Complex::one() ,
-        Complex::one() 
-      )
-    );
+    let qubit1 = Qubit::half_half();
 
-    
     // halfturn
 
   }
