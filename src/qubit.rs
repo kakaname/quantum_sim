@@ -28,6 +28,8 @@ impl PartialEq for Qubit {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Qubit {
+  // x: probability of 0
+  // y: probability of 1
   state : UnitVector2<Complex<f32>>,
 }
 
@@ -64,6 +66,10 @@ impl Qubit {
 
   pub fn get_state(&self) -> UnitVector2<Complex<f32>> {
     self.state
+  }
+
+  pub fn change_state(&mut self, state : UnitVector2<Complex<f32>>){
+    self.state = state;
   }
 
   pub fn measure(&self) -> (Measurement, Self) {

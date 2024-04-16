@@ -26,7 +26,12 @@ impl QuantumRegister {
     let (qubit1, qubit2) = gate_function(self.register[i], self.register[j]);
     self.register[i] = qubit1;
     self.register[j] = qubit2;
+  }
 
+  pub fn fourier_transform(&mut self, i : usize, j : usize) {
+    for iter in i..j {
+       
+    } 
   }
 
 

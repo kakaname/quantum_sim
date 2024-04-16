@@ -1,11 +1,13 @@
 use std::f32::consts::{PI, SQRT_2};
 use std::ops::{Mul};
+use std::vec;
 
 use nalgebra::{ DMatrix, Complex, dmatrix, Vector2, UnitVector2 };
 
 use num::integer::sqrt;
-use num_traits::{ One, Zero };
-use crate::qubit::Qubit;
+use num_traits::{ float, One, Zero };
+use std::f64::consts::E;
+use crate::qubit::{self, Qubit};
 
 pub struct QuantumGate {
   matrix : DMatrix<Complex<f32>>,
@@ -27,38 +29,18 @@ impl Mul<Qubit> for QuantumGate {
 }
 
 impl QuantumGate {
-  pub fn hadamard() -> Self {
-    // returns hadamard gate
-
-    let matrix: DMatrix<Complex<f32>> = dmatrix![
-    Complex::one() * 1. / SQRT_2, Complex::one() * 1. / SQRT_2;
-    Complex::one() * 1. / SQRT_2, Complex::one() * -1. / SQRT_2
-    ];
-    Self {
-      matrix
-    }
-  }
-  pub fn cnot(qubit1: Qubit, qubit2: Qubit) -> (Qubit, Qubit) {
-    // takes:
-    // (Control, NOT)
-    // returns:
-    // NOT
+  pub fn hadamard(qubit1: &mut Qubit ) {
+    let factor = 1.0/SQRT_2;
     let state1 = qubit1.get_state();
-    let state2 = qubit2.get_state();
-
     let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
-      state1.y * state2.y + state1.x * state2.x,
-      state1.y * state2.x + state1.x * state2.y
+      (state1.x + state1.y) * factor,
+      (state1.x - state1.y) * factor
     ));
-    println!("vector: {}", vector.into_inner());
 
-    (
-      Qubit::new(state1),
-      Qubit::new(vector)
-    )
+    qubit1.change_state(vector);
   }
 
-  pub fn not(&self, qubit1 : Qubit) -> Qubit {
+  pub fn not(qubit1: &mut Qubit) {
     // the not gate
     let state1 = qubit1.get_state();
     let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
@@ -66,9 +48,43 @@ impl QuantumGate {
       state1.x
     ));
 
-    Qubit::new(vector)
+    qubit1.change_state(vector);
   }
 
+
+  pub fn swap(qubit1: &mut Qubit, qubit2: &mut Qubit) {
+    let state1 = qubit1.get_state();
+    qubit1.change_state(qubit2.get_state());
+    qubit2.change_state(state1);
+
+  }
+
+  pub fn phase(qubit1: &mut Qubit, coeffcient: f32){
+    // gate :
+    // 1  0 
+    // 0  e^(i*pi/coeffcient)
+    let turn_coeffcient = Complex::from(E as f32).powc(Complex::i()*(PI/coeffcient));
+    let state1 = qubit1.get_state();
+    let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
+      state1.x, 
+      state1.y * turn_coeffcient 
+    ));
+
+    qubit1.change_state(vector);
+  }
+
+  // qubit1 : control
+  // qubit2 : NOT
+  pub fn cnot(qubit1: &mut Qubit, qubit2: &mut Qubit) {
+    let state1 = qubit1.get_state();
+    let state2 = qubit2.get_state();
+    let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
+      state1.x * state2.x + state1.y * state2.y,
+      state1.x * state2.y + state1.y * state2.x
+    ));
+
+    qubit2.change_state(vector);
+  }
 
 
 }
@@ -79,55 +95,50 @@ mod quantum_gate_test {
 
   #[test]
   fn test_cnot() {
-    // Should not change when control is 0
-    let (qubit1, qubit2) = QuantumGate::cnot(Qubit::basis_0(), Qubit::basis_1());
+    // |11> -> |10>
+    let mut qubit1 = Qubit::basis_1();
+    let mut qubit2 = Qubit::basis_0();
+
+    QuantumGate::cnot(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::basis_1());
 
-    // Should switch to 1 when control is 1
-    let (qubit1, qubit2) = QuantumGate::cnot(Qubit::basis_1(), Qubit::basis_0());
-    assert_eq!(qubit2, Qubit::basis_1());
+    // |11> -> |10>
+    qubit1 = Qubit::basis_1();
+    qubit2 = Qubit::basis_1();
 
-    // Should switch to 0 when control is 1
-    let (qubit1, qubit2) = QuantumGate::cnot(Qubit::basis_1(), Qubit::basis_1());
+    QuantumGate::cnot(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::basis_0());
 
-    // Should stay the same when control is 1
-    let (qubit1, qubit2) = QuantumGate::cnot(Qubit::basis_1(), Qubit::half_half());
+    // |01> -> |01>
+    qubit1 = Qubit::basis_0();
+    qubit2 = Qubit::basis_1();
+
+    QuantumGate::cnot(&mut qubit1, &mut qubit2);
+    assert_eq!(qubit2, Qubit::basis_1());
+
+    // |1[1/2, 1/2]> -> |1[1/2,1/2]>
+    qubit1 = Qubit::basis_1();
+    qubit2 = Qubit::half_half();
+
+    QuantumGate::cnot(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::half_half());
   }
 
   #[test]
-  fn quantum_gate_multiply_test() {
-
-    let vec0_hadamard = 
+  fn quantum_gate_phase_test() {
+    // state:
+    // sqrt(0.5)  
+    // sqrt(0.5)
+    let vec0_phase: UnitVector2<Complex<f32>> = 
     UnitVector2::new_normalize(
       Vector2::new(
-        Complex::one() * 1. / SQRT_2,
-        Complex::one() * 1. / SQRT_2
-      )
-    );
-    let gate = QuantumGate::hadamard();
-    let qubit_0 = gate * Qubit::basis_0();
-
-    assert_eq!(qubit_0.get_state(), vec0_hadamard);
-
-    let vec1_hadamard = 
-    UnitVector2::new_normalize(
-      Vector2::new(
-        Complex::one() * 1. / SQRT_2,
-        Complex::one() * -1. / SQRT_2
+        Complex::one() ,
+        Complex::one() 
       )
     );
 
-    let gate = QuantumGate::hadamard();
-    let qubit_1 =  gate * Qubit::basis_1();
-
-    assert_eq!(qubit_1.get_state(), vec1_hadamard);
-
-
-
-
-
+    
+    // halfturn
 
   }
 
