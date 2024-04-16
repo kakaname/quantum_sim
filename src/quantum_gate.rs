@@ -95,7 +95,7 @@ impl QuantumGate {
 
   // qubit1 : control
   // qubit2 : NOT
-  pub fn cnot(qubit1: &mut Qubit, qubit2: &mut Qubit) {
+  pub fn control_not(qubit1: &mut Qubit, qubit2: &mut Qubit) {
     let state1 = qubit1.get_state();
     let state2 = qubit2.get_state();
     let vector: UnitVector2<Complex<f32>> = UnitVector2::new_normalize(Vector2::new(
@@ -107,6 +107,7 @@ impl QuantumGate {
   }
 
 
+
 }
 #[cfg(test)]
 mod quantum_gate_test {
@@ -114,33 +115,33 @@ mod quantum_gate_test {
   use super::*;
 
   #[test]
-  fn test_cnot() {
+  fn test_control_not() {
     // |11> -> |10>
     let mut qubit1 = Qubit::basis_1();
     let mut qubit2 = Qubit::basis_0();
 
-    QuantumGate::cnot(&mut qubit1, &mut qubit2);
+    QuantumGate::control_not(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::basis_1());
 
     // |11> -> |10>
     qubit1 = Qubit::basis_1();
     qubit2 = Qubit::basis_1();
 
-    QuantumGate::cnot(&mut qubit1, &mut qubit2);
+    QuantumGate::control_not(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::basis_0());
 
     // |01> -> |01>
     qubit1 = Qubit::basis_0();
     qubit2 = Qubit::basis_1();
 
-    QuantumGate::cnot(&mut qubit1, &mut qubit2);
+    QuantumGate::control_not(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::basis_1());
 
     // |1[1/2, 1/2]> -> |1[1/2,1/2]>
     qubit1 = Qubit::basis_1();
     qubit2 = Qubit::half_half();
 
-    QuantumGate::cnot(&mut qubit1, &mut qubit2);
+    QuantumGate::control_not(&mut qubit1, &mut qubit2);
     assert_eq!(qubit2, Qubit::half_half());
   }
 
