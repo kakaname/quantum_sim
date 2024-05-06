@@ -10,7 +10,7 @@ use num_traits::Zero;
 
 use rand::prelude::*;
 
-use crate::quantum_gate::QuantumGate;
+use crate::quantum_gate::{CCXGate, CXGate, XGate};
 
 pub type Measurement = u8;
 
@@ -83,14 +83,6 @@ impl Qubit {
     }
   }
 
-  pub fn apply(&mut self, gate : QuantumGate) {
-    self.state = UnitVector2::new_normalize(
-      Vector2::new(
-        Complex::one(),
-        Complex::zero()
-      )
-    );
-  }
 }
 
 

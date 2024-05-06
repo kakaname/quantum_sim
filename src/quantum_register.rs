@@ -1,38 +1,42 @@
-
 use nalgebra::{Complex, DVector, Unit};
 
 use crate::qubit::Qubit;
-use crate::quantum_gate::QuantumGate;
+use crate::quantum_gate::*;
 
 
 
 #[derive(Clone, PartialEq)]
 pub struct QuantumRegister {
-  register : Vec<Qubit>
+  register : Vec<Complex<f32>>
 }
 
 impl QuantumRegister {
-  pub fn new(size : usize) -> Self {
-    let mut register = vec![Qubit::basis_0(); size];
-
+  pub fn new(vec : Vec<Qubit>) -> Self {
+    let register = Self::create_state_vector_qubits(vec);
     Self { register }
+
   }
 
-  pub fn apply_one(&mut self, i : usize, gate : QuantumGate) {
-    self.register[i].apply(gate);
+  pub fn create_state_vector_qubits(vec : Vec<Qubit>) -> Vec<Complex<f32>> {
+    let num_qubits = vec.len();  
+    let mut state_vector : Vec<Complex<f32>> = vec![Complex::new(0., 0.); 1 << num_qubits];
+
+    for (i, qubit_state) in vec.iter().enumerate() {
+      let shift = num_qubits - i - 1;
+      for(j, state) in state_vector.iter_mut().enumerate() {
+        let mask = 1 << shift;
+        if (j & mask) == 0 {
+          state_vector[j] += qubit_state.get_state()[0] * *state;
+        } else {
+          state_vector[j] += qubit_state.get_state()[1] * *state;
+        }
+      }
+
+    }
+  
+    state_vector
   }
 
-  pub fn apply_two(&mut self, i : usize, j : usize, gate_function : fn(Qubit, Qubit) -> (Qubit, Qubit)) {
-    let (qubit1, qubit2) = gate_function(self.register[i], self.register[j]);
-    self.register[i] = qubit1;
-    self.register[j] = qubit2;
-  }
-
-  pub fn fourier_transform(&mut self, i : usize, j : usize) {
-    for iter in i..j {
-       
-    } 
-  }
 
 
 }
