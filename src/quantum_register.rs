@@ -19,20 +19,12 @@ impl QuantumRegister {
 
   pub fn create_state_vector_qubits(vec : Vec<Qubit>) -> Vec<Complex<f32>> {
     let num_qubits = vec.len();  
-    let mut state_vector : Vec<Complex<f32>> = vec![Complex::new(0., 0.); 1 << num_qubits];
+    let mut state_vector : Vec<Complex<f32>> = vec![Complex::new(0., 0.); num_qubits];
 
-    for (i, qubit_state) in vec.iter().enumerate() {
-      let shift = num_qubits - i - 1;
-      for(j, state) in state_vector.iter_mut().enumerate() {
-        let mask = 1 << shift;
-        if (j & mask) == 0 {
-          state_vector[j] += qubit_state.get_state()[0] * *state;
-        } else {
-          state_vector[j] += qubit_state.get_state()[1] * *state;
-        }
-      }
+    for (i, qubit) in vec.iter().enumerate() {
 
     }
+
   
     state_vector
   }
@@ -41,5 +33,24 @@ impl QuantumRegister {
 
 }
 
+
+#[cfg(test)]
+mod test_register {
+  use super::*;
+  use num_traits::{One, Zero};
+
+  #[test]
+  fn test_create_state_vector_qubits() {
+    let vec = vec![Qubit::basis_1(), Qubit::basis_0()];
+
+    let state_vector = QuantumRegister::create_state_vector_qubits(vec);
+    let true_state = vec![Complex::zero(), Complex::zero(), Complex::one(), Complex::zero()];
+
+    assert_eq!(true_state, state_vector);
+
+
+  }
+
+}
 
 
