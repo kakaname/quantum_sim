@@ -1,7 +1,8 @@
-use nalgebra::{Complex, DVector, Unit};
+use nalgebra::{Complex, DVector, Unit, UnitVector2};
 
 use crate::qubit::Qubit;
 use crate::quantum_gate::*;
+use crate::math::Math;
 
 
 
@@ -19,14 +20,18 @@ impl QuantumRegister {
 
   pub fn create_state_vector_qubits(vec : Vec<Qubit>) -> Vec<Complex<f32>> {
     let num_qubits = vec.len();  
-    let mut state_vector : Vec<Complex<f32>> = vec![Complex::new(0., 0.); num_qubits];
-
-    for (i, qubit) in vec.iter().enumerate() {
-
+    let states: Vec<UnitVector2<Complex<f32>>> = vec.iter().map(|num| num.get_state()).collect();
+    for i in 0..num_qubits {
+      println!("state_vector 1: {}", states[i][0]);
+      println!("state_vector 2: {}", states[i][1]);
     }
 
-  
-    state_vector
+    let mut result = vec![states[0].to_owned()[0] , states[0].to_owned()[1]];
+    for vector in states.iter().skip(1) {
+      result = Math::kronecker(&result, vector);
+    }
+
+    result
   }
 
 
