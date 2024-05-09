@@ -21,11 +21,11 @@ Currently, the application of a register to a single qubit gate works, The goal 
 The tests under each quantum gate shows how each piece of code interacts with eachother.
 
 
-'''
+```
   let register = QuantumRegister::new_with_size(4); // creates a quantum register with size four in state |0000>
   let cnot = XGate::x(0); // creates a Pauli_X gate for qubit 0 
   cnot.apply(&mut register) // applies the gate to the register, here the state of the register is |0001>
-'''
+```
 
 
 More will be added with time, the next steps are:
