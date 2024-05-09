@@ -220,6 +220,13 @@ mod test_register {
     cnot.apply(&mut test_register);
     let result: DMatrix<Complex<f32>> = test_register.get_state_vector().clone();
     assert_eq!(result, dmatrix![Complex::zero(), Complex::one()].transpose());
+
+    let cnot = XGate::x(0);
+    let mut test_register = QuantumRegister::new(vec![Qubit::basis_0(), Qubit::basis_0()]);
+    cnot.apply(&mut test_register);
+    let result: DMatrix<Complex<f32>> = test_register.get_state_vector().clone();
+    assert_eq!(result, dmatrix![Complex::zero(), Complex::zero(), Complex::one(), Complex::zero()].transpose());
+
   
   }
 }
