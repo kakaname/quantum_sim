@@ -40,7 +40,10 @@ impl QuantumCircuit {
 
 #[cfg(test)]
 mod test_circuit {
-  use crate::quantum_gate::XGate;
+  use nalgebra::ComplexField;
+use num::complex::ComplexFloat;
+
+use crate::quantum_gate::XGate;
 
   use super::*;
 
@@ -64,33 +67,44 @@ mod test_circuit {
     circuit.run_timepoints();
 
     let mut true_vector: Vec<Complex<f32>> = vec![Complex::zero(); 16];
-    true_vector[0] = Complex::one();
+    true_vector[0] = Complex::one(); // now should be in state |0000>
 
     assert_eq!(*circuit.get_state(), DMatrix::from_vec(16,1,true_vector));
     
-
-    let mut gates : Vec<XGate> = vec![];
-    for i in 0..4 {
-      gates.push(XGate::x(i));
-    }
-
-    let mut timepoint = TimePoint::new();
-    for gate in gates {
-      timepoint.add_gate(Box::new(gate));
-    }
-
-    circuit.add_timepoint(timepoint);
-
     circuit.run_timepoints();
 
     let mut true_vector : Vec<Complex<f32>> = vec![Complex::zero(); 16];
-    true_vector[15] = Complex::one();
+    true_vector[15] = Complex::one(); // now should be back to state |1111>
 
     assert_eq!(*circuit.get_state(), DMatrix::from_vec(16,1,true_vector));
 
+    // more than one timepoint test
+    // here double hadamaard == an indentity gate
 
-    
+    let qubits = vec![Qubit::basis_1(); 4];
+    let mut circuit = QuantumCircuit::create_circuit_with_qubits(qubits); // state |1111>
 
+    let mut gates : Vec<XGate> = vec![];
+    for i in 0..4 {
+      gates.push(XGate::h(i)); 
+    }
+
+    let mut timepoint = TimePoint::new();
+    let mut timepoint2 = TimePoint::new();
+    for gate in gates {
+      timepoint.add_gate(Box::new(gate.clone()));
+      timepoint2.add_gate(Box::new(gate));
+    }
+
+    circuit.add_timepoint(timepoint);
+    circuit.add_timepoint(timepoint2);
+
+    circuit.run_timepoints();
+
+    let mut true_vector: Vec<Complex<f32>> = vec![Complex::zero(); 16];
+    true_vector[15] = Complex::one(); // now should be in state |1111>
+
+    assert!((circuit.get_state() - DMatrix::from_vec(16,1,true_vector)).sum().re().abs() < 0.0001 );
 
   }
 
