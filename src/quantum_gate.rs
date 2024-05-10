@@ -85,18 +85,15 @@ impl Apply for XGate {
     ];
     let mut matrix : DMatrix<Complex<f32>> = dmatrix![Complex::one()];
 
+    // this should be made more efficent, splitting into 3 arrays, creating two identity matrices and multiplying should be more efficent
     for i in 0..size {
       if i == loc {
         let gate = self.get_gate();
-        matrix = Math::kronecker_mat_mul(&matrix, &gate);
-
+        matrix = matrix.kronecker(gate);
       }else{
-        matrix = Math::kronecker_mat_mul(&matrix, &identity);
-
+        matrix = matrix.kronecker(&identity);
       }
-
     }
-
     let val = register.get_state_vector();
     register.set_register(matrix * val);
     
@@ -151,10 +148,17 @@ impl CXGate {
 
   }
 
+  pub fn get_loc(&self) -> (usize, usize) {
+    (self.q1 as usize, self.q2 as usize)
+  }
+
 }
 impl Apply for CXGate {
   fn apply(&self, register : &mut QuantumRegister) {
-      
+    let size = register.get_size();
+    let loc = self.get_loc();
+    // freeze on implementing the CXGate until i find a solution, will come back after doing other stuff
+
   }
 }
 
@@ -216,13 +220,13 @@ mod test_register {
   #[test]
   fn test_apply_XGate() {
     let cnot = XGate::x(0);
-    let mut test_register = QuantumRegister::new(vec![Qubit::basis_0()]);
+    let mut test_register = QuantumRegister::new_with_qubits(vec![Qubit::basis_0()]);
     cnot.apply(&mut test_register);
     let result: DMatrix<Complex<f32>> = test_register.get_state_vector().clone();
     assert_eq!(result, dmatrix![Complex::zero(), Complex::one()].transpose());
 
     let cnot = XGate::x(0);
-    let mut test_register = QuantumRegister::new(vec![Qubit::basis_0(), Qubit::basis_0()]);
+    let mut test_register = QuantumRegister::new_with_qubits(vec![Qubit::basis_0(), Qubit::basis_0()]);
     cnot.apply(&mut test_register);
     let result: DMatrix<Complex<f32>> = test_register.get_state_vector().clone();
     assert_eq!(result, dmatrix![Complex::zero(), Complex::zero(), Complex::one(), Complex::zero()].transpose());

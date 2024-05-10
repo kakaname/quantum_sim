@@ -3,23 +3,26 @@ use crate::quantum_gate::{Apply, XGate, CXGate, CCXGate};
 
 
 pub struct TimePoint {
-  gates : Vec<Box<dyn Apply>>,
-  register : QuantumRegister
+  gates : Vec<Box<dyn Apply>>
 
 }
 
 impl TimePoint {
-  pub fn run(&mut self) {
+  pub fn run(&self, register : &mut QuantumRegister) {
     for gate in &self.gates {
-      gate.apply(&mut self.register);
+      gate.apply(register);
     }
   }
 
   pub fn add_gate(&mut self, apply : Box<dyn Apply>) {
     self.gates.push(apply); 
   }
-  
 
+  pub fn new() -> Self {
+    let gates: Vec<Box<dyn Apply>> = vec![];
+    Self { gates }
+  }
+  
 
 }
 
